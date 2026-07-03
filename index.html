@@ -356,6 +356,13 @@ tbody tr:hover td{background:var(--surface-2)}
       <div class="field"><label>Name</label><input id="ed-name" placeholder="User name" /></div>
     </div>
     <div class="field"><label>Password <span class="hint">(leave blank to keep current)</span></label><input id="ed-password" type="text" placeholder="Unchanged" /></div>
+    <div class="field">
+      <label>MAC / Device ID</label>
+      <div style="display:flex;gap:10px;align-items:center">
+        <input id="ed-mac" readonly style="flex:1;opacity:.7;font-family:'Cascadia Code','Fira Code',Consolas,monospace;font-size:12px" placeholder="No device registered" />
+        <button class="btn btn-sm btn-tonal" type="button" onclick="clearMacInEdit()" title="Clear device binding">Clear</button>
+      </div>
+    </div>
     <div class="field"><label>Notes</label><textarea id="ed-notes" placeholder="Internal notes..."></textarea></div>
 
     <label style="font-size:13px;font-weight:700;color:var(--text-2);margin-bottom:10px">Permissions</label>
@@ -543,6 +550,20 @@ async function clearMac(email){
   }catch(e){toast('Error: '+e.message)}
 }
 
+async function clearMacInEdit(){
+  const email=$('ed-email-key').value;
+  if(!email)return;
+  try{
+    const r=await api('admin_update',{email,clear_mac:true});
+    if(r.error){toast(r.error);return}
+    $('ed-mac').value='';
+    toast('MAC cleared for '+email);
+    const u=users.find(x=>(x.email||'').toLowerCase()===email.toLowerCase());
+    if(u)u.mac='';
+    renderTable();
+  }catch(e){toast('Error: '+e.message)}
+}
+
 // ---- Edit sheet ----
 function editUser(email){
   const u=users.find(x=>(x.email||'').toLowerCase()===email.toLowerCase());
@@ -552,6 +573,7 @@ function editUser(email){
   $('ed-email').value=u.email||'';
   $('ed-name').value=u.name||'';
   $('ed-password').value='';
+  $('ed-mac').value=u.mac||'';
   $('ed-notes').value=u.notes||'';
   $('ed-approved').checked=isApproved(u);
   $('ed-admin').checked=!!u.is_admin;

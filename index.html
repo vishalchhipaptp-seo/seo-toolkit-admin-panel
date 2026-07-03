@@ -417,12 +417,16 @@ function toast(msg,ok){
 }
 
 async function api(action,extra){
-  const p=new URLSearchParams({action,admin_key:ADMIN_KEY,...extra});
-  return (await fetch(API_URL+'?'+p.toString())).json();
-}
-async function apiPost(action,body){
-  return (await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({action,admin_key:ADMIN_KEY,...body})})).json();
+  const flat={};
+  Object.keys(extra||{}).forEach(k=>{
+    const v=extra[k];
+    if(v===true)flat[k]='true';
+    else if(v===false)flat[k]='false';
+    else if(v!==undefined&&v!==null)flat[k]=String(v);
+  });
+  const p=new URLSearchParams({action,admin_key:ADMIN_KEY,...flat});
+  const r=await fetch(API_URL+'?'+p.toString());
+  return r.json();
 }
 
 function connect(){
@@ -519,7 +523,7 @@ function renderTable(){
 
 async function quickAction(email,approve){
   try{
-    const r=await apiPost(approve?'admin_approve':'admin_reject',{email});
+    const r=await api(approve?'admin_approve':'admin_reject',{email});
     if(r.error){toast(r.error);return}
     toast(email+(approve?' approved':' revoked'));
     const u=users.find(x=>(x.email||'').toLowerCase()===email.toLowerCase());
@@ -530,7 +534,7 @@ async function quickAction(email,approve){
 
 async function clearMac(email){
   try{
-    const r=await apiPost('admin_update',{email,clear_mac:true});
+    const r=await api('admin_update',{email,clear_mac:true});
     if(r.error){toast(r.error);return}
     toast('MAC cleared for '+email);
     const u=users.find(x=>(x.email||'').toLowerCase()===email.toLowerCase());
@@ -567,7 +571,7 @@ async function saveUser(){
   const pw=$('ed-password').value;if(pw)body.password=pw;
   $('btn-save').disabled=true;$('btn-save').innerHTML='<span class="spinner"></span> Saving...';
   try{
-    const r=await apiPost('admin_update',body);
+    const r=await api('admin_update',body);
     if(r.error){toast(r.error);return}
     toast('User updated');closeSheet('edit');await loadUsers();
   }catch(e){toast('Error: '+e.message)}
@@ -579,7 +583,7 @@ let deleteEmail='';
 function deleteUser(email){deleteEmail=email;$('del-email').textContent=email;openSheet('del')}
 async function confirmDelete(){
   try{
-    const r=await apiPost('admin_delete',{email:deleteEmail});
+    const r=await api('admin_delete',{email:deleteEmail});
     if(r.error){toast(r.error);return}
     toast(deleteEmail+' deleted');closeSheet('del');
     users=users.filter(u=>(u.email||'').toLowerCase()!==deleteEmail.toLowerCase());

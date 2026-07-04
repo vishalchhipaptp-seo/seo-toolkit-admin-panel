@@ -357,7 +357,7 @@ tbody tr:hover td{background:var(--surface-2)}
     </div>
     <div class="field"><label>Password <span class="hint">(leave blank to keep current)</span></label><input id="ed-password" type="text" placeholder="Unchanged" /></div>
     <div class="field">
-      <label>MAC / Device ID</label>
+      <label>Device ID</label>
       <div style="display:flex;gap:10px;align-items:center">
         <input id="ed-mac" readonly style="flex:1;opacity:.7;font-family:'Cascadia Code','Fira Code',Consolas,monospace;font-size:12px" placeholder="No device registered" />
         <button class="btn btn-sm btn-tonal" type="button" onclick="clearMacInEdit()" title="Clear device binding">Clear</button>
@@ -521,7 +521,7 @@ function renderTable(){
       +(ap?'<button class="btn btn-sm btn-warn" onclick="quickAction(\''+em+'\',false)">Revoke</button>'
           :'<button class="btn btn-sm btn-ok" onclick="quickAction(\''+em+'\',true)">Approve</button>')
       +'<button class="btn btn-sm btn-tonal" onclick="editUser(\''+em+'\')">Edit</button>'
-      +'<button class="btn btn-sm btn-tonal" onclick="clearMac(\''+em+'\')">Reset MAC</button>'
+      +'<button class="btn btn-sm btn-tonal" onclick="clearMac(\''+em+'\')">Reset Device ID</button>'
       +'<button class="btn btn-sm btn-err" onclick="deleteUser(\''+em+'\')">Delete</button></div>';
     return'<tr><td><div style="font-weight:700">'+em+'</div>'+(nm?'<div class="user-name">'+nm+'</div>':'')
       +'</td><td>'+status+'</td><td>'+mac+'</td><td>'+fmts+'</td><td>'+login+'</td><td>'+acts+'</td></tr>';
@@ -543,7 +543,7 @@ async function clearMac(email){
   try{
     const r=await api('admin_update',{email,clear_mac:true});
     if(r.error){toast(r.error);return}
-    toast('MAC cleared for '+email);
+    toast('Device ID cleared for '+email);
     const u=users.find(x=>(x.email||'').toLowerCase()===email.toLowerCase());
     if(u)u.mac='';
     renderTable();
@@ -557,7 +557,7 @@ async function clearMacInEdit(){
     const r=await api('admin_update',{email,clear_mac:true});
     if(r.error){toast(r.error);return}
     $('ed-mac').value='';
-    toast('MAC cleared for '+email);
+    toast('Device ID cleared for '+email);
     const u=users.find(x=>(x.email||'').toLowerCase()===email.toLowerCase());
     if(u)u.mac='';
     renderTable();

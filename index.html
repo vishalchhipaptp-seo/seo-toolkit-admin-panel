@@ -542,7 +542,7 @@ async function quickAction(email,approve){
 
 async function clearMac(email){
   try{
-    const r=await api('admin_update',{email,clear_mac:true});
+    const r=await api('admin_upsert',{email,clear_mac:true});
     if(r.error){toast(r.error);return}
     toast('Device ID cleared for '+email);
     const u=users.find(x=>(x.email||'').toLowerCase()===email.toLowerCase());
@@ -555,7 +555,7 @@ async function clearMacInEdit(){
   const email=$('ed-email-key').value;
   if(!email)return;
   try{
-    const r=await api('admin_update',{email,clear_mac:true});
+    const r=await api('admin_upsert',{email,clear_mac:true});
     if(r.error){toast(r.error);return}
     $('ed-mac').value='';
     toast('Device ID cleared for '+email);
@@ -594,7 +594,7 @@ async function saveUser(){
   const pw=$('ed-password').value;if(pw)body.password=pw;
   $('btn-save').disabled=true;$('btn-save').innerHTML='<span class="spinner"></span> Saving...';
   try{
-    const r=await api('admin_update',body);
+    const r=await api('admin_upsert',body);
     if(r.error){toast(r.error);return}
     toast('User updated');closeSheet('edit');await loadUsers();
   }catch(e){toast('Error: '+e.message)}

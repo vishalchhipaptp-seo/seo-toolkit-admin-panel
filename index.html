@@ -414,6 +414,7 @@ tbody tr:hover td{background:var(--surface-2)}
 <div class="toast" id="toast"></div>
 
 <script>
+  let isCreating = false;
 const ALL_FORMATS=['james','james_short','sigma','omega','neon','xenon','gamma'];
 let API_URL='',ADMIN_KEY='',users=[],filter='all';
 function $(id){return document.getElementById(id)}
@@ -437,28 +438,29 @@ async function api(action,extra){
   return r.json();
 }
 
-  function openAddUser(){
+function openAddUser(){
+  isCreating = true;
+
   $('sheet-title').textContent = 'Add New User';
 
-  $('ed-email-key').value = '';
-  $('ed-email').value = '';
-  $('ed-name').value = '';
-  $('ed-password').value = '';
-  $('ed-mac').value = '';
-  $('ed-notes').value = '';
+  $('ed-email-key').value='';
+  $('ed-email').value='';
+  $('ed-name').value='';
+  $('ed-password').value='';
+  $('ed-mac').value='';
+  $('ed-notes').value='';
 
-  $('ed-approved').checked = false;
-  $('ed-admin').checked = false;
+  $('ed-approved').checked=false;
+  $('ed-admin').checked=false;
 
-  // reset formats
-  $('fmt-grid').innerHTML = ALL_FORMATS.map(f => `
+  $('ed-email').readOnly = false; // 🔥 IMPORTANT
+
+  $('fmt-grid').innerHTML = ALL_FORMATS.map(f=>`
     <label class="fmt-chip">
       <input type="checkbox" value="${f}">
       ${f}
     </label>
   `).join('');
-
-  isCreating = true;
 
   openSheet('edit');
 }
@@ -609,6 +611,8 @@ function editUser(email){
     const ck=uf.includes(f.toLowerCase())?'checked':'';
     return'<label class="fmt-chip"><input type="checkbox" value="'+f+'" '+ck+' />'+f+'</label>';
   }).join('');
+    // 🔥 IMPORTANT: lock email in edit mode
+  $('ed-email').readOnly = true;
   openSheet('edit');
 }
 

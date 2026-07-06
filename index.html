@@ -595,6 +595,7 @@ async function clearMacInEdit(){
 
 // ---- Edit sheet ----
 function editUser(email){
+  isCreating=false;
   const u=users.find(x=>(x.email||'').toLowerCase()===email.toLowerCase());
   if(!u)return;
   $('sheet-title').textContent='Edit — '+u.email;
@@ -617,7 +618,8 @@ function editUser(email){
 }
 
 async function saveUser(){
-  const email=$('ed-email-key').value;
+  const email=(isCreating?$('ed-email').value:$('ed-email-key').value).trim().toLowerCase();
+  if(!email){toast('Enter an email address');return}
   const fmts=Array.from($('fmt-grid').querySelectorAll('input:checked')).map(c=>c.value).join(',');
   const body={email,name:$('ed-name').value,notes:$('ed-notes').value,
     approved:$('ed-approved').checked,is_admin:$('ed-admin').checked,formats:fmts};
@@ -626,7 +628,9 @@ async function saveUser(){
   try{
     const r=await api('admin_upsert',body);
     if(r.error){toast(r.error);return}
-    toast('User updated');closeSheet('edit');await loadUsers();
+    toast(isCreating?'User created':'User updated');
+    isCreating=false;
+    closeSheet('edit');await loadUsers();
   }catch(e){toast('Error: '+e.message)}
   finally{$('btn-save').disabled=false;$('btn-save').textContent='Save Changes'}
 }

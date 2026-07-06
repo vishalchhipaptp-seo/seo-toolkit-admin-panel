@@ -642,7 +642,11 @@ async function confirmDelete(){
 
 // ---- Sheet open/close ----
 function openSheet(id){
-  $('sheet-'+id+'-bg').classList.add('open');$('sheet-'+id).classList.add('open');
+  const bg = document.getElementById('sheet-'+id+'-bg');
+  const sheet = document.getElementById('sheet-'+id);
+
+  if(bg) bg.classList.add('open');
+  if(sheet) sheet.classList.add('open');
 }
 function closeSheet(id){
   $('sheet-'+id+'-bg').classList.remove('open');$('sheet-'+id).classList.remove('open');

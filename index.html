@@ -437,6 +437,32 @@ async function api(action,extra){
   return r.json();
 }
 
+  function openAddUser(){
+  $('sheet-title').textContent = 'Add New User';
+
+  $('ed-email-key').value = '';
+  $('ed-email').value = '';
+  $('ed-name').value = '';
+  $('ed-password').value = '';
+  $('ed-mac').value = '';
+  $('ed-notes').value = '';
+
+  $('ed-approved').checked = false;
+  $('ed-admin').checked = false;
+
+  // reset formats
+  $('fmt-grid').innerHTML = ALL_FORMATS.map(f => `
+    <label class="fmt-chip">
+      <input type="checkbox" value="${f}">
+      ${f}
+    </label>
+  `).join('');
+
+  isCreating = true;
+
+  openSheet('edit');
+}
+  
 function connect(){
   API_URL=$('api-url').value.trim();
   ADMIN_KEY=$('admin-key').value.trim();

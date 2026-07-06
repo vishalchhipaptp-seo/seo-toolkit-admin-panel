@@ -622,7 +622,8 @@ async function saveUser(){
   if(!email){toast('Enter an email address');return}
   const fmts=Array.from($('fmt-grid').querySelectorAll('input:checked')).map(c=>c.value).join(',');
   const body={email,name:$('ed-name').value,notes:$('ed-notes').value,
-    approved:$('ed-approved').checked,is_admin:$('ed-admin').checked,formats:fmts};
+    approved:$('ed-approved').checked,is_admin:$('ed-admin').checked,formats:fmts,
+    device:$('ed-mac').value.trim().toUpperCase()};
   const pw=$('ed-password').value;if(pw)body.password=pw;
   $('btn-save').disabled=true;$('btn-save').innerHTML='<span class="spinner"></span> Saving...';
   try{

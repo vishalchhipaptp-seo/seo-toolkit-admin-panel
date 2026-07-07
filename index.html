@@ -415,7 +415,16 @@ tbody tr:hover td{background:var(--surface-2)}
 
 <script>
   let isCreating = false;
-const ALL_FORMATS=['james','james_short','sigma','omega','neon','xenon','gamma'];
+const ALL_FORMATS=[
+  'None',
+  'james',
+  'james_short',
+  'sigma',
+  'omega',
+  'neon',
+  'xenon',
+  'gamma'
+];
 let API_URL='',ADMIN_KEY='',users=[],filter='all';
 function $(id){return document.getElementById(id)}
 
@@ -542,9 +551,14 @@ function renderTable(){
     const status='<span class="tag '+(ap?'t-approved':'t-pending')+'">'+(ap?'Approved':'Pending')+'</span>'
       +(u.is_admin?' <span class="tag t-admin">Admin</span>':'');
     const mac=u.mac?'<span class="mac">'+esc(String(u.mac))+'</span>':'<span style="color:var(--text-3)">--</span>';
-    const fmts=u.formats
-      ?u.formats.split(',').map(f=>'<span class="fmt-tag">'+esc(f.trim())+'</span>').join('')
-      :'<span style="color:var(--text-3)">All</span>';
+    const fmts =
+u.formats
+?
+u.formats.split(',').map(f=>{
+ return '<span class="fmt-tag">'+esc(f.trim())+'</span>';
+}).join('')
+:
+'<span style="color:var(--text-3)">All</span>';
     const login=u.last_login?'<span class="date">'+fmtDate(u.last_login)+'</span>':'<span style="color:var(--text-3)">Never</span>';
     const acts='<div class="actions-cell">'
       +(ap?'<button class="btn btn-sm btn-warn" onclick="quickAction(\''+em+'\',false)">Revoke</button>'
@@ -620,7 +634,13 @@ function editUser(email){
 async function saveUser(){
   const email=(isCreating?$('ed-email').value:$('ed-email-key').value).trim().toLowerCase();
   if(!email){toast('Enter an email address');return}
-  const fmts=Array.from($('fmt-grid').querySelectorAll('input:checked')).map(c=>c.value).join(',');
+  let selectedFormats = Array.from(
+  $('fmt-grid').querySelectorAll('input:checked')
+).map(c=>c.value);
+
+let fmts = selectedFormats.includes('None')
+    ? 'None'
+    : selectedFormats.join(',');
   const body={email,name:$('ed-name').value,notes:$('ed-notes').value,
     approved:$('ed-approved').checked,is_admin:$('ed-admin').checked,formats:fmts,
     device:$('ed-mac').value.trim().toUpperCase()};

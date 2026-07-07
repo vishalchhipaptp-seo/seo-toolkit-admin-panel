@@ -327,7 +327,7 @@ tbody tr:hover td{background:var(--surface-2)}
       <div class="tbl-wrap">
         <table>
           <thead><tr>
-            <th>User</th><th>Status</th><th>Device ID</th><th>Formats</th><th>Last Login</th><th>Actions</th>
+            <th>User</th><th>Status</th><th>Device ID</th><th>Formats</th><th>Tools</th><th>Last Login</th><th>Actions</th>
           </tr></thead>
           <tbody id="tbody"></tbody>
         </table>
@@ -380,6 +380,11 @@ tbody tr:hover td{background:var(--surface-2)}
       <label>Allowed Formats</label>
       <div class="fmt-grid" id="fmt-grid"></div>
     </div>
+
+    <div class="field">
+      <label>Allowed Tools</label>
+      <div class="fmt-grid" id="tools-grid"></div>
+    </div>
   </div>
   <div class="sheet-actions">
     <button class="btn btn-tonal" onclick="closeSheet('edit')">Cancel</button>
@@ -425,6 +430,17 @@ const ALL_FORMATS=[
   'xenon',
   'gamma'
 ];
+const ALL_TOOLS=[
+  {key:'ranking',  label:'Rank Checker'},
+  {key:'index',    label:'Indexing Checker'},
+  {key:'count',    label:'Results Count'},
+  {key:'backlink', label:'Backlink Status'},
+  {key:'onpage',   label:'SEO On-Page'},
+  {key:'health',   label:'Health Audit'},
+  {key:'gsc',      label:'GSC Audit'},
+  {key:'crawl',    label:'Crawl Tracker'},
+  {key:'brief',    label:'Brief Analysis'}
+];
 let API_URL='',ADMIN_KEY='',users=[],filter='all';
 function $(id){return document.getElementById(id)}
 
@@ -468,6 +484,13 @@ function openAddUser(){
     <label class="fmt-chip">
       <input type="checkbox" value="${f}">
       ${f}
+    </label>
+  `).join('');
+
+  $('tools-grid').innerHTML = ALL_TOOLS.map(t=>`
+    <label class="fmt-chip">
+      <input type="checkbox" value="${t.key}">
+      ${t.label}
     </label>
   `).join('');
 
@@ -559,6 +582,15 @@ u.formats.split(',').map(f=>{
 }).join('')
 :
 '<span style="color:var(--text-3)">All</span>';
+    const tools =
+u.tools
+?
+u.tools.split(',').map(t=>{
+ const key=t.trim();const def=ALL_TOOLS.find(x=>x.key===key.toLowerCase());
+ return '<span class="fmt-tag">'+esc(def?def.label:key)+'</span>';
+}).join('')
+:
+'<span style="color:var(--text-3)">All</span>';
     const login=u.last_login?'<span class="date">'+fmtDate(u.last_login)+'</span>':'<span style="color:var(--text-3)">Never</span>';
     const acts='<div class="actions-cell">'
       +(ap?'<button class="btn btn-sm btn-warn" onclick="quickAction(\''+em+'\',false)">Revoke</button>'
@@ -567,7 +599,7 @@ u.formats.split(',').map(f=>{
       +'<button class="btn btn-sm btn-tonal" onclick="clearMac(\''+em+'\')">Reset Device ID</button>'
       +'<button class="btn btn-sm btn-err" onclick="deleteUser(\''+em+'\')">Delete</button></div>';
     return'<tr><td><div style="font-weight:700">'+em+'</div>'+(nm?'<div class="user-name">'+nm+'</div>':'')
-      +'</td><td>'+status+'</td><td>'+mac+'</td><td>'+fmts+'</td><td>'+login+'</td><td>'+acts+'</td></tr>';
+      +'</td><td>'+status+'</td><td>'+mac+'</td><td>'+fmts+'</td><td>'+tools+'</td><td>'+login+'</td><td>'+acts+'</td></tr>';
   }).join('');
 }
 
@@ -626,6 +658,11 @@ function editUser(email){
     const ck=uf.includes(f.toLowerCase())?'checked':'';
     return'<label class="fmt-chip"><input type="checkbox" value="'+f+'" '+ck+' />'+f+'</label>';
   }).join('');
+  const ut=u.tools?u.tools.split(',').map(t=>t.trim().toLowerCase()):[];
+  $('tools-grid').innerHTML=ALL_TOOLS.map(t=>{
+    const ck=ut.includes(t.key.toLowerCase())?'checked':'';
+    return'<label class="fmt-chip"><input type="checkbox" value="'+t.key+'" '+ck+' />'+t.label+'</label>';
+  }).join('');
     // 🔥 IMPORTANT: lock email in edit mode
   $('ed-email').readOnly = true;
   openSheet('edit');
@@ -641,8 +678,12 @@ async function saveUser(){
 let fmts = selectedFormats.includes('None')
     ? 'None'
     : selectedFormats.join(',');
+  let selectedTools = Array.from(
+    $('tools-grid').querySelectorAll('input:checked')
+  ).map(c=>c.value);
+  let tools = selectedTools.join(',');
   const body={email,name:$('ed-name').value,notes:$('ed-notes').value,
-    approved:$('ed-approved').checked,is_admin:$('ed-admin').checked,formats:fmts,
+    approved:$('ed-approved').checked,is_admin:$('ed-admin').checked,formats:fmts,tools:tools,
     device:$('ed-mac').value.trim().toUpperCase()};
   const pw=$('ed-password').value;if(pw)body.password=pw;
   $('btn-save').disabled=true;$('btn-save').innerHTML='<span class="spinner"></span> Saving...';

@@ -323,6 +323,7 @@ tbody tr:hover td{background:var(--surface-2)}
         <button class="seg-btn" data-f="pending" onclick="setFilter('pending')">Pending</button>
         <button class="seg-btn" data-f="admin" onclick="setFilter('admin')">Admins</button>
       </div>
+      <button class="btn btn-tonal btn-sm hidden" id="btn-buildings" onclick="openBuildings()">Buildings</button>
       <button class="btn btn-primary btn-sm" onclick="openAddUser()">+ Add User</button>
     </div>
 
@@ -331,7 +332,7 @@ tbody tr:hover td{background:var(--surface-2)}
       <div class="tbl-wrap">
         <table>
           <thead><tr>
-            <th>User</th><th>Status</th><th>Device ID</th><th>Formats</th><th>Tools</th><th>Last Login</th><th>Actions</th>
+            <th>User</th><th>Status</th><th>Actions</th><th>Last Login</th><th>Building</th><th>Device ID</th><th>Formats</th><th>Tools</th>
           </tr></thead>
           <tbody id="tbody"></tbody>
         </table>
@@ -375,10 +376,24 @@ tbody tr:hover td{background:var(--surface-2)}
       <span class="lbl">Approved</span>
       <div class="switch"><input type="checkbox" id="ed-approved"><span class="track"></span></div>
     </label>
-    <label class="switch-row" for="ed-admin" style="margin-bottom:18px">
-      <span class="lbl">Admin</span>
-      <div class="switch"><input type="checkbox" id="ed-admin"><span class="track"></span></div>
-    </label>
+
+    <!-- Role + Building: super admin only. A building admin creates teammates (role=user)
+         in their own building, so these are hidden for them. -->
+    <div id="sa-fields" style="margin-bottom:18px">
+      <div class="row2">
+        <div class="field"><label>Role</label>
+          <select id="ed-role">
+            <option value="user">User</option>
+            <option value="admin">Admin (manages a building)</option>
+            <option value="superadmin">Super Admin</option>
+          </select>
+        </div>
+        <div class="field"><label>Building</label>
+          <input id="ed-building" list="building-list" placeholder="e.g. PTP" autocomplete="off" />
+          <datalist id="building-list"></datalist>
+        </div>
+      </div>
+    </div>
 
     <div class="field">
       <label>Allowed Formats</label>
@@ -419,6 +434,33 @@ tbody tr:hover td{background:var(--surface-2)}
   </div>
 </div>
 
+<!-- ===================== Buildings Sheet (super admin) ===================== -->
+<div class="sheet-overlay" id="sheet-bld-bg"></div>
+<div class="sheet" id="sheet-bld">
+  <div class="sheet-grip"></div>
+  <div class="sheet-hd">
+    <h2>Buildings</h2>
+    <button class="icon-btn" onclick="closeSheet('bld')" title="Close">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="sheet-body">
+    <div id="bld-list" style="margin-bottom:18px"></div>
+    <label style="font-size:13px;font-weight:700;color:var(--text-2);margin-bottom:10px">Add / edit building</label>
+    <input type="hidden" id="bld-key" />
+    <div class="row2">
+      <div class="field"><label>Building name</label><input id="bld-name" placeholder="e.g. 313" autocomplete="off" /></div>
+      <div class="field"><label>Admin email(s)</label><input id="bld-admins" placeholder="mgr@x.com, mgr2@x.com" autocomplete="off" /></div>
+    </div>
+    <div class="field"><label>Building sheet ID <span class="hint">(that building's Google Sheet)</span></label><input id="bld-sheet" placeholder="Sheet ID" autocomplete="off" /></div>
+    <div class="field"><label>GSC script URL <span class="hint">(that building's GSC /exec URL)</span></label><input id="bld-gsc" placeholder="https://script.google.com/.../exec" autocomplete="off" /></div>
+  </div>
+  <div class="sheet-actions">
+    <button class="btn btn-tonal" onclick="closeSheet('bld')">Close</button>
+    <button class="btn btn-primary" id="btn-bld-save" onclick="saveBuilding()">Save Building</button>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
@@ -432,7 +474,8 @@ const ALL_FORMATS=[
   'omega',
   'neon',
   'xenon',
-  'gamma'
+  'gamma',
+  'sara'
 ];
 const ALL_TOOLS=[
   {key:'ranking',  label:'Rank Checker'},
@@ -446,6 +489,10 @@ const ALL_TOOLS=[
   {key:'brief',    label:'Brief Analysis'}
 ];
 let API_URL='',ADMIN_EMAIL='',ADMIN_PASSWORD='',users=[],filter='all';
+// Role-aware: set from admin_login. superadmin sees all buildings + can set role/building
+// + manage Buildings; a building admin sees only their own building's teammates.
+let MY_ROLE='',MY_BUILDING='',BUILDINGS=[];
+const isSuper=()=>MY_ROLE==='superadmin';
 function $(id){return document.getElementById(id)}
 
 function toast(msg,ok){
@@ -480,7 +527,8 @@ function openAddUser(){
   $('ed-notes').value='';
 
   $('ed-approved').checked=false;
-  $('ed-admin').checked=false;
+  if($('ed-role')) $('ed-role').value='user';
+  if($('ed-building')) $('ed-building').value = isSuper() ? '' : MY_BUILDING;
 
   $('ed-email').readOnly = false; // 🔥 IMPORTANT
 
@@ -513,9 +561,71 @@ async function connect(){
   try{
     const r=await api('admin_login');
     if(!r.success){toast(r.error||'Invalid email or password');return}
+    MY_ROLE=(r.role||'').toLowerCase(); MY_BUILDING=r.building||'';
+    applyRoleUI();
+    if(isSuper()) await loadBuildings();
     await loadUsers();
   }catch(e){toast('Connection failed: '+e.message)}
   finally{$('btn-connect').disabled=false;$('btn-connect').textContent='Connect'}
+}
+
+function applyRoleUI(){
+  // Super admin: can set role/building + manage Buildings. Building admin: neither
+  // (the gateway also enforces this — the UI just hides what they can't do).
+  const sup=isSuper();
+  $('sa-fields').style.display = sup ? '' : 'none';
+  $('btn-buildings').classList.toggle('hidden', !sup);
+  $('conn-info').textContent = sup ? 'Super Admin' : ('Admin — ' + (MY_BUILDING||'building'));
+  $('dash-sub').textContent = sup
+    ? 'Manage all buildings, admins and users'
+    : 'Manage your building’s teammates ('+(MY_BUILDING||'')+')';
+}
+
+async function loadBuildings(){
+  try{
+    const r=await api('buildings_list');
+    BUILDINGS = (r.buildings)||[];
+    const dl=$('building-list');
+    if(dl) dl.innerHTML=BUILDINGS.map(b=>'<option value="'+esc(b.building)+'">').join('');
+  }catch(e){ BUILDINGS=[]; }
+}
+
+// ---- Buildings management (super admin) ----
+function openBuildings(){
+  renderBuildings();
+  ['bld-key','bld-name','bld-admins','bld-sheet','bld-gsc'].forEach(id=>$(id).value='');
+  openSheet('bld');
+}
+function renderBuildings(){
+  if(!BUILDINGS.length){$('bld-list').innerHTML='<p style="color:var(--text-3);font-size:13px">No buildings registered yet.</p>';return}
+  $('bld-list').innerHTML='<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="text-align:left">'
+    +'<th>Building</th><th>Admin(s)</th><th>GSC URL</th><th></th></tr></thead><tbody>'
+    +BUILDINGS.map(b=>'<tr>'
+      +'<td style="font-weight:700;padding:6px 4px">'+esc(b.building)+'</td>'
+      +'<td style="padding:6px 4px;font-size:12px">'+esc(b.admin_emails||'--')+'</td>'
+      +'<td style="padding:6px 4px;font-size:11px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(b.gsc_script_url||'--')+'</td>'
+      +'<td style="padding:6px 4px"><button class="btn btn-sm btn-tonal" onclick="editBuilding(\''+esc(b.building)+'\')">Edit</button></td>'
+      +'</tr>').join('')+'</tbody></table>';
+}
+function editBuilding(name){
+  const b=BUILDINGS.find(x=>x.building===name);if(!b)return;
+  $('bld-key').value=b.building;$('bld-name').value=b.building;
+  $('bld-admins').value=b.admin_emails||'';$('bld-sheet').value=b.building_sheet_id||'';
+  $('bld-gsc').value=b.gsc_script_url||'';
+}
+async function saveBuilding(){
+  const name=$('bld-name').value.trim();
+  if(!name){toast('Enter a building name');return}
+  $('btn-bld-save').disabled=true;$('btn-bld-save').innerHTML='<span class="spinner"></span> Saving...';
+  try{
+    const r=await api('buildings_upsert',{building:name,admin_emails:$('bld-admins').value.trim(),
+      building_sheet_id:$('bld-sheet').value.trim(),gsc_script_url:$('bld-gsc').value.trim()});
+    if(r.error){toast(r.error);return}
+    toast('Building saved: '+name);
+    await loadBuildings();renderBuildings();
+    ['bld-key','bld-name','bld-admins','bld-sheet','bld-gsc'].forEach(id=>$(id).value='');
+  }catch(e){toast('Error: '+e.message)}
+  finally{$('btn-bld-save').disabled=false;$('btn-bld-save').textContent='Save Building'}
 }
 
 function disconnect(){
@@ -582,8 +692,10 @@ function renderTable(){
 
   $('tbody').innerHTML=list.map(u=>{
     const em=esc(u.email||'');const nm=esc(u.name||'');const ap=isApproved(u);
-    const status='<span class="tag '+(ap?'t-approved':'t-pending')+'">'+(ap?'Approved':'Pending')+'</span>'
-      +(u.is_admin?' <span class="tag t-admin">Admin</span>':'');
+    const roleTag = u.role==='superadmin' ? ' <span class="tag t-admin">Super Admin</span>'
+                  : (u.role==='admin'||u.is_admin) ? ' <span class="tag t-admin">Admin</span>' : '';
+    const status='<span class="tag '+(ap?'t-approved':'t-pending')+'">'+(ap?'Approved':'Pending')+'</span>'+roleTag;
+    const building=u.building?esc(u.building):'<span style="color:var(--text-3)">--</span>';
     const mac=u.mac?'<span class="mac">'+esc(String(u.mac))+'</span>':'<span style="color:var(--text-3)">--</span>';
     const fmts =
 u.formats
@@ -610,7 +722,7 @@ u.tools.split(',').map(t=>{
       +'<button class="btn btn-sm btn-tonal" onclick="clearMac(\''+em+'\')">Reset Device ID</button>'
       +'<button class="btn btn-sm btn-err" onclick="deleteUser(\''+em+'\')">Delete</button></div>';
     return'<tr><td><div style="font-weight:700">'+em+'</div>'+(nm?'<div class="user-name">'+nm+'</div>':'')
-      +'</td><td>'+status+'</td><td>'+mac+'</td><td>'+fmts+'</td><td>'+tools+'</td><td>'+login+'</td><td>'+acts+'</td></tr>';
+      +'</td><td>'+status+'</td><td>'+acts+'</td><td>'+login+'</td><td>'+building+'</td><td>'+mac+'</td><td>'+fmts+'</td><td>'+tools+'</td></tr>';
   }).join('');
 }
 
@@ -663,7 +775,8 @@ function editUser(email){
   $('ed-mac').value=u.mac||'';
   $('ed-notes').value=u.notes||'';
   $('ed-approved').checked=isApproved(u);
-  $('ed-admin').checked=!!u.is_admin;
+  if($('ed-role')) $('ed-role').value = u.role || (u.is_admin ? 'admin' : 'user');
+  if($('ed-building')) $('ed-building').value = u.building || (isSuper() ? '' : MY_BUILDING);
   const uf=u.formats?u.formats.split(',').map(f=>f.trim().toLowerCase()):[];
   $('fmt-grid').innerHTML=ALL_FORMATS.map(f=>{
     const ck=uf.includes(f.toLowerCase())?'checked':'';
@@ -693,8 +806,14 @@ let fmts = selectedFormats.includes('None')
     $('tools-grid').querySelectorAll('input:checked')
   ).map(c=>c.value);
   let tools = selectedTools.join(',');
+  // Super admin sets role/building; a building admin always creates teammates as 'user'
+  // in their OWN building (the gateway enforces this regardless of what we send).
+  const role = isSuper() ? ($('ed-role').value||'user') : 'user';
+  const building = isSuper() ? ($('ed-building').value||'').trim() : MY_BUILDING;
+  if(isSuper() && role!=='superadmin' && !building){toast('Choose a building for this user');return}
   const body={email,name:$('ed-name').value,notes:$('ed-notes').value,
-    approved:$('ed-approved').checked,is_admin:$('ed-admin').checked,formats:fmts,tools:tools,
+    approved:$('ed-approved').checked,role:role,building:building,
+    is_admin:(role==='admin'||role==='superadmin'),formats:fmts,tools:tools,
     device:$('ed-mac').value.trim().toUpperCase()};
   const pw=$('ed-password').value;if(pw)body.password=pw;
   $('btn-save').disabled=true;$('btn-save').innerHTML='<span class="spinner"></span> Saving...';

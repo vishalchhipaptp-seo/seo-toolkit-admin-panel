@@ -470,7 +470,7 @@ const ALL_FORMATS=[
   'None',
   // On-Page report formats
   'james', 'omega', 'neon', 'xenon', 'gamma', 'sara', 'peta', 'deltafl',
-  'deltafvr', 'deltaup', 'octal', 'camila', 'alpha', 'eta', 'kappa',
+  'deltafvr', 'deltaup', 'octal', 'camila', 'alpha', 'eta', 'kappa', 'theta',
   // Brief Analysis report formats (some keys overlap with On-Page above -
   // same key, different tool/generator)
   'beta', 'w3era_g', 'beta_bhargu', 'w3era_r', 'kappa_up'
@@ -484,7 +484,9 @@ const ALL_TOOLS=[
   {key:'health',   label:'Health Audit'},
   {key:'gsc',      label:'GSC Audit'},
   {key:'crawl',    label:'Crawl Tracker'},
-  {key:'brief',    label:'Brief Analysis'}
+  {key:'brief',    label:'Brief Analysis'},
+  {key:'wayback',    label:'Wayback Submitter'},
+  {key:'seranking',  label:'SEranking Audit'}
 ];
 let API_URL='',ADMIN_EMAIL='',ADMIN_PASSWORD='',users=[],filter='all';
 // Role-aware: set from admin_login. superadmin sees all buildings + can set role/building

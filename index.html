@@ -477,6 +477,7 @@ const ALL_FORMATS=[
   // On-Page report formats
   'james', 'omega', 'neon', 'xenon', 'gamma', 'sara', 'peta', 'deltafl',
   'deltafvr', 'deltaup', 'octal', 'camila', 'alpha', 'eta', 'kappa', 'theta',
+  'sigma',
   // Brief Analysis report formats (some keys overlap with On-Page above -
   // same key, different tool/generator)
   'beta', 'w3era_g', 'beta_bhargu', 'w3era_r', 'kappa_up'
@@ -492,7 +493,8 @@ const ALL_TOOLS=[
   {key:'crawl',    label:'Crawl Tracker'},
   {key:'brief',    label:'Brief Analysis'},
   {key:'wayback',    label:'Wayback Submitter'},
-  {key:'seranking',  label:'SEranking Audit'}
+  {key:'seranking',  label:'SEranking Audit'},
+  {key:'geo',        label:'GEO / AI Optimization'}
 ];
 let API_URL='',ADMIN_EMAIL='',ADMIN_PASSWORD='',users=[],filter='all';
 // Role-aware: set from admin_login. superadmin sees all buildings + can set role/building
@@ -707,7 +709,7 @@ function renderTable(){
     const building=u.building?esc(u.building):'<span style="color:var(--text-3)">--</span>';
     const mac=u.mac?'<span class="mac">'+esc(String(u.mac))+'</span>':'<span style="color:var(--text-3)">--</span>';
     const fmts =
-u.formats
+u.formats && u.formats.trim().toLowerCase()!=='all'
 ?
 u.formats.split(',').map(f=>{
  return '<span class="fmt-tag">'+esc(f.trim())+'</span>';
@@ -715,7 +717,7 @@ u.formats.split(',').map(f=>{
 :
 '<span style="color:var(--text-3)">All</span>';
     const tools =
-u.tools
+u.tools && u.tools.trim().toLowerCase()!=='all'
 ?
 u.tools.split(',').map(t=>{
  const key=t.trim();const def=ALL_TOOLS.find(x=>x.key===key.toLowerCase());
@@ -786,14 +788,19 @@ function editUser(email){
   $('ed-approved').checked=isApproved(u);
   if($('ed-role')) $('ed-role').value = u.role || (u.is_admin ? 'admin' : 'user');
   if($('ed-building')) $('ed-building').value = u.building || (isSuper() ? '' : MY_BUILDING);
-  const uf=u.formats?u.formats.split(',').map(f=>f.trim().toLowerCase()):[];
+  // A stored value of the literal string "all" means every checkbox should be
+  // pre-checked on edit (not zero, which is what .includes('all') against real
+  // format/tool keys would otherwise produce, misleadingly implying no access).
+  const ufRaw=u.formats?u.formats.split(',').map(f=>f.trim().toLowerCase()):[];
+  const ufIsAll=ufRaw.includes('all');
   $('fmt-grid').innerHTML=ALL_FORMATS.map(f=>{
-    const ck=uf.includes(f.toLowerCase())?'checked':'';
+    const ck=(ufIsAll&&f!=='None')||ufRaw.includes(f.toLowerCase())?'checked':'';
     return'<label class="fmt-chip"><input type="checkbox" value="'+f+'" '+ck+' />'+f+'</label>';
   }).join('');
-  const ut=u.tools?u.tools.split(',').map(t=>t.trim().toLowerCase()):[];
+  const utRaw=u.tools?u.tools.split(',').map(t=>t.trim().toLowerCase()):[];
+  const utIsAll=utRaw.includes('all');
   $('tools-grid').innerHTML=ALL_TOOLS.map(t=>{
-    const ck=ut.includes(t.key.toLowerCase())?'checked':'';
+    const ck=utIsAll||utRaw.includes(t.key.toLowerCase())?'checked':'';
     return'<label class="fmt-chip"><input type="checkbox" value="'+t.key+'" '+ck+' />'+t.label+'</label>';
   }).join('');
     // 🔥 IMPORTANT: lock email in edit mode
@@ -808,13 +815,23 @@ async function saveUser(){
   $('fmt-grid').querySelectorAll('input:checked')
 ).map(c=>c.value);
 
+  // "Select All" should save as the literal string "all" - not every format key
+  // spelled out - so a user with all-format access automatically gets any NEW
+  // format added later, instead of being stuck on the list from when they were
+  // granted access. ALL_FORMATS includes the literal 'None' option, so compare
+  // against the real format count (excluding 'None').
+  const realFormatCount = ALL_FORMATS.filter(f=>f!=='None').length;
 let fmts = selectedFormats.includes('None')
     ? 'None'
-    : selectedFormats.join(',');
+    : (selectedFormats.length>0 && selectedFormats.length===realFormatCount)
+      ? 'all'
+      : selectedFormats.join(',');
   let selectedTools = Array.from(
     $('tools-grid').querySelectorAll('input:checked')
   ).map(c=>c.value);
-  let tools = selectedTools.join(',');
+  let tools = (selectedTools.length>0 && selectedTools.length===ALL_TOOLS.length)
+    ? 'all'
+    : selectedTools.join(',');
   // Super admin sets role/building; a building admin always creates teammates as 'user'
   // in their OWN building (the gateway enforces this regardless of what we send).
   const role = isSuper() ? ($('ed-role').value||'user') : 'user';

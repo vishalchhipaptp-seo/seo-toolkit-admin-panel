@@ -495,7 +495,11 @@ const ALL_TOOLS=[
   {key:'wayback',    label:'Wayback Submitter'},
   {key:'seranking',  label:'SEranking Audit'},
   {key:'geo',        label:'GEO / AI Optimization'},
-  {key:'keywordvolume', label:'Keyword Search Volume'}
+  // 'keywordvolume' removed for now - the tool's tab is hard-hidden in the
+  // main app (Google Ads Developer Token still on Test Access, blocks real
+  // data). Add {key:'keywordvolume', label:'Keyword Search Volume'} back
+  // here at the same time the tab is un-hidden in templates/index.html -
+  // keep this list and the app's actual available tools in sync always.
 ];
 let API_URL='',ADMIN_EMAIL='',ADMIN_PASSWORD='',users=[],filter='all';
 // Role-aware: set from admin_login. superadmin sees all buildings + can set role/building

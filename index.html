@@ -460,6 +460,7 @@ tbody tr:hover td{background:var(--surface-2)}
     </div>
     <div class="field"><label>Building sheet ID <span class="hint">(that building's Google Sheet)</span></label><input id="bld-sheet" placeholder="Sheet ID" autocomplete="off" /></div>
     <div class="field"><label>GSC script URL <span class="hint">(that building's GSC /exec URL)</span></label><input id="bld-gsc" placeholder="https://script.google.com/.../exec" autocomplete="off" /></div>
+    <div class="field"><label>Allowed office IPs <span class="hint">(comma-separated PUBLIC IPs; a login from one skips device-ID approval. Find yours at api.ipify.org. Leave blank to keep device approval.)</span></label><input id="bld-ips" placeholder="e.g. 203.0.113.5, 203.0.113.6" autocomplete="off" /></div>
   </div>
   <div class="sheet-actions">
     <button class="btn btn-tonal" onclick="closeSheet('bld')">Close</button>
@@ -611,17 +612,18 @@ async function loadBuildings(){
 // ---- Buildings management (super admin) ----
 function openBuildings(){
   renderBuildings();
-  ['bld-key','bld-name','bld-admins','bld-sheet','bld-gsc'].forEach(id=>$(id).value='');
+  ['bld-key','bld-name','bld-admins','bld-sheet','bld-gsc','bld-ips'].forEach(id=>$(id).value='');
   openSheet('bld');
 }
 function renderBuildings(){
   if(!BUILDINGS.length){$('bld-list').innerHTML='<p style="color:var(--text-3);font-size:13px">No buildings registered yet.</p>';return}
   $('bld-list').innerHTML='<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="text-align:left">'
-    +'<th>Building</th><th>Admin(s)</th><th>GSC URL</th><th></th></tr></thead><tbody>'
+    +'<th>Building</th><th>Admin(s)</th><th>GSC URL</th><th>Office IPs</th><th></th></tr></thead><tbody>'
     +BUILDINGS.map(b=>'<tr>'
       +'<td style="font-weight:700;padding:6px 4px">'+esc(b.building)+'</td>'
       +'<td style="padding:6px 4px;font-size:12px">'+esc(b.admin_emails||'--')+'</td>'
       +'<td style="padding:6px 4px;font-size:11px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(b.gsc_script_url||'--')+'</td>'
+      +'<td style="padding:6px 4px;font-size:11px">'+esc(b.allowed_ips||'--')+'</td>'
       +'<td style="padding:6px 4px"><button class="btn btn-sm btn-tonal" onclick="editBuilding(\''+esc(b.building)+'\')">Edit</button></td>'
       +'</tr>').join('')+'</tbody></table>';
 }
@@ -629,7 +631,7 @@ function editBuilding(name){
   const b=BUILDINGS.find(x=>x.building===name);if(!b)return;
   $('bld-key').value=b.building;$('bld-name').value=b.building;
   $('bld-admins').value=b.admin_emails||'';$('bld-sheet').value=b.building_sheet_id||'';
-  $('bld-gsc').value=b.gsc_script_url||'';
+  $('bld-gsc').value=b.gsc_script_url||'';$('bld-ips').value=b.allowed_ips||'';
 }
 async function saveBuilding(){
   const name=$('bld-name').value.trim();
@@ -637,11 +639,12 @@ async function saveBuilding(){
   $('btn-bld-save').disabled=true;$('btn-bld-save').innerHTML='<span class="spinner"></span> Saving...';
   try{
     const r=await api('buildings_upsert',{building:name,admin_emails:$('bld-admins').value.trim(),
-      building_sheet_id:$('bld-sheet').value.trim(),gsc_script_url:$('bld-gsc').value.trim()});
+      building_sheet_id:$('bld-sheet').value.trim(),gsc_script_url:$('bld-gsc').value.trim(),
+      allowed_ips:$('bld-ips').value.trim()});
     if(r.error){toast(r.error);return}
     toast('Building saved: '+name);
     await loadBuildings();renderBuildings();
-    ['bld-key','bld-name','bld-admins','bld-sheet','bld-gsc'].forEach(id=>$(id).value='');
+    ['bld-key','bld-name','bld-admins','bld-sheet','bld-gsc','bld-ips'].forEach(id=>$(id).value='');
   }catch(e){toast('Error: '+e.message)}
   finally{$('btn-bld-save').disabled=false;$('btn-bld-save').textContent='Save Building'}
 }

@@ -460,7 +460,7 @@ tbody tr:hover td{background:var(--surface-2)}
     </div>
     <div class="field"><label>Building sheet ID <span class="hint">(that building's Google Sheet)</span></label><input id="bld-sheet" placeholder="Sheet ID" autocomplete="off" /></div>
     <div class="field"><label>GSC script URL <span class="hint">(that building's GSC /exec URL)</span></label><input id="bld-gsc" placeholder="https://script.google.com/.../exec" autocomplete="off" /></div>
-    <div class="field"><label>Allowed office IPs <span class="hint">(comma-separated PUBLIC IPs; a login from one skips device-ID approval. Find yours at api.ipify.org. Leave blank to keep device approval.)</span></label><input id="bld-ips" placeholder="e.g. 203.0.113.5, 203.0.113.6" autocomplete="off" /></div>
+    <div class="field"><label>Allowed office IPs <span class="hint">(comma-separated; a login from a match skips device-ID approval, but the account must still be Approved. Two kinds: a PUBLIC office IP = secure (get it at api.ipify.org, e.g. 203.0.113.5), or a LOCAL subnet prefix = convenience only / weaker, since other networks can share it (e.g. 192.168.11, 10.10.11). Blank = normal device approval.)</span></label><input id="bld-ips" placeholder="203.0.113.5, 192.168.11, 10.10.11" autocomplete="off" /></div>
   </div>
   <div class="sheet-actions">
     <button class="btn btn-tonal" onclick="closeSheet('bld')">Close</button>

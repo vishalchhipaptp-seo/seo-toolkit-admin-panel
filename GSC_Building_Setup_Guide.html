@@ -207,27 +207,27 @@ hr.rule{border:none; border-top:1px solid var(--border); margin:48px 0}
   <!-- STEP 3 -->
   <section class="step">
     <div class="step-num">3</div>
-    <h2>Enter three settings</h2>
-    <p class="step-sub">Open <span class="menu-path">Project Settings &rarr; Script Properties &rarr; Add property</span> and add these three:</p>
-    <div class="kv">
-      <span class="k">SHEET_ID</span><span class="v">the ID you copied in Step 1</span>
-      <span class="k">CLIENT_ID</span><span class="v">from Step 4 below</span>
-      <span class="k">CLIENT_SECRET</span><span class="v">from Step 4 below</span>
-    </div>
-    <div class="callout"><span class="mark">Skip:</span><span>Don't add anything called <code class="inline">ADMIN_KEY</code> &mdash; it isn't used anymore. Admin actions now check the admin's own SEO Toolkit Pro login instead.</span></div>
+    <h2>Get your OAuth credentials</h2>
+    <p class="step-sub">This is what lets the script securely talk to Google on your behalf &mdash; you'll enter these in the next step.</p>
+    <ol class="tasks">
+      <li>Easiest option: reuse PTP's existing Client ID / Client Secret &mdash; ask the super admin for these two values.</li>
+      <li>Reload the sheet, then run <span class="menu-path">GSC Tools &rarr; Show owner / project info</span> &mdash; it prints a <b>redirect URI</b> ending in <code class="inline">/usercallback</code>.</li>
+      <li>In Google Cloud Console, open that OAuth client under <span class="menu-path">APIs &amp; Services &rarr; Credentials</span>, add that URI under <b>Authorized redirect URIs</b>, and save.</li>
+    </ol>
+    <div class="callout"><span class="mark">Heads up:</span><span>If this building will connect close to 100 Google accounts, give it its own Cloud project + OAuth client instead of sharing PTP's &mdash; Google limits how many accounts one unverified client can serve.</span></div>
   </section>
 
   <!-- STEP 4 -->
   <section class="step">
     <div class="step-num">4</div>
-    <h2>Get your OAuth credentials</h2>
-    <p class="step-sub">This is what lets the script securely talk to Google on your behalf.</p>
-    <ol class="tasks">
-      <li>Easiest option: reuse PTP's existing Client ID / Client Secret. Enter them into the two fields from Step 3.</li>
-      <li>Reload the sheet, then run <span class="menu-path">GSC Tools &rarr; Show owner / project info</span> &mdash; it prints a <b>redirect URI</b> ending in <code class="inline">/usercallback</code>.</li>
-      <li>In Google Cloud Console, open that OAuth client under <span class="menu-path">APIs &amp; Services &rarr; Credentials</span>, add that URI under <b>Authorized redirect URIs</b>, and save.</li>
-    </ol>
-    <div class="callout"><span class="mark">Heads up:</span><span>If this building will connect close to 100 Google accounts, give it its own Cloud project + OAuth client instead of sharing PTP's &mdash; Google limits how many accounts one unverified client can serve.</span></div>
+    <h2>Enter three settings</h2>
+    <p class="step-sub">Open <span class="menu-path">Project Settings &rarr; Script Properties &rarr; Add property</span> and add these three:</p>
+    <div class="kv">
+      <span class="k">SHEET_ID</span><span class="v">the ID you copied in Step 1</span>
+      <span class="k">CLIENT_ID</span><span class="v">from Step 3 above</span>
+      <span class="k">CLIENT_SECRET</span><span class="v">from Step 3 above</span>
+    </div>
+    <div class="callout"><span class="mark">Skip:</span><span>Don't add anything called <code class="inline">ADMIN_KEY</code> &mdash; it isn't used anymore. Admin actions now check the admin's own SEO Toolkit Pro login instead.</span></div>
   </section>
 
   <!-- STEP 5 -->

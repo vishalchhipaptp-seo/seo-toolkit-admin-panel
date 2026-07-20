@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Setting up a GSC Workbench for Your Building</title>
+<style>
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --surface-2:#eef1f3;
+  --text:#1b222b; --text-muted:#5b6472; --text-faint:#8992a0;
+  --accent:#1e6e76; --accent-ink:#0e454b; --accent-soft:#e4f0ef;
+  --border:#dfe3e8; --border-strong:#c7ccd3;
+  --warn-bg:#fff6e8; --warn-text:#7a4e00; --warn-border:#f0d9a6;
+  --code-bg:#f0f2f4; --code-text:#3a4552;
+  --step-num-bg:#1e6e76; --step-num-text:#ffffff;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#14181c; --surface:#1c2126; --surface-2:#20262c;
+    --text:#e7eaed; --text-muted:#97a0ab; --text-faint:#6b7480;
+    --accent:#4fb8be; --accent-ink:#bdeef0; --accent-soft:#1e3436;
+    --border:#2b3238; --border-strong:#3a424a;
+    --warn-bg:#2c2308; --warn-text:#e8b85b; --warn-border:#4a3a12;
+    --code-bg:#22282e; --code-text:#c7cdd4;
+    --step-num-bg:#4fb8be; --step-num-text:#0c1416;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14181c; --surface:#1c2126; --surface-2:#20262c;
+  --text:#e7eaed; --text-muted:#97a0ab; --text-faint:#6b7480;
+  --accent:#4fb8be; --accent-ink:#bdeef0; --accent-soft:#1e3436;
+  --border:#2b3238; --border-strong:#3a424a;
+  --warn-bg:#2c2308; --warn-text:#e8b85b; --warn-border:#4a3a12;
+  --code-bg:#22282e; --code-text:#c7cdd4;
+  --step-num-bg:#4fb8be; --step-num-text:#0c1416;
+}
+:root[data-theme="light"]{
+  --bg:#f5f6f8; --surface:#ffffff; --surface-2:#eef1f3;
+  --text:#1b222b; --text-muted:#5b6472; --text-faint:#8992a0;
+  --accent:#1e6e76; --accent-ink:#0e454b; --accent-soft:#e4f0ef;
+  --border:#dfe3e8; --border-strong:#c7ccd3;
+  --warn-bg:#fff6e8; --warn-text:#7a4e00; --warn-border:#f0d9a6;
+  --code-bg:#f0f2f4; --code-text:#3a4552;
+  --step-num-bg:#1e6e76; --step-num-text:#ffffff;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:700px;margin:0 auto;padding:56px 24px 96px}
+.eyebrow{
+  font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  font-size:12px; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--accent); font-weight:600; margin:0 0 10px;
+}
+h1{
+  font-family:Georgia,"Iowan Old Style","Palatino Linotype",Palatino,serif;
+  font-size:34px; line-height:1.15; margin:0 0 14px; font-weight:600;
+  text-wrap:balance; letter-spacing:-.01em;
+}
+.lede{font-size:16px; color:var(--text-muted); max-width:60ch; margin:0 0 8px}
+.lede b{color:var(--text); font-weight:600}
+
+.notice{
+  display:flex; gap:12px; align-items:flex-start;
+  background:var(--accent-soft); border:1px solid var(--border);
+  border-left:3px solid var(--accent); border-radius:8px;
+  padding:14px 16px; margin:28px 0 40px; font-size:14px; color:var(--text);
+}
+.notice b{color:var(--accent-ink)}
+
+.files{
+  display:grid; grid-template-columns:auto 1fr; gap:6px 14px;
+  background:var(--surface); border:1px solid var(--border); border-radius:10px;
+  padding:16px 18px; margin:24px 0 44px; font-size:13.5px;
+}
+.files .f-icon{color:var(--accent); font-family:ui-monospace,monospace; font-weight:700}
+.files code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:13px; color:var(--code-text)}
+
+section.step{
+  position:relative; padding:0 0 44px 52px; border-left:1.5px solid var(--border);
+  margin-left:15px;
+}
+section.step:last-of-type{border-left-color:transparent; padding-bottom:0}
+.step-num{
+  position:absolute; left:-15.5px; top:0; width:31px; height:31px; border-radius:50%;
+  background:var(--step-num-bg); color:var(--step-num-text);
+  display:flex; align-items:center; justify-content:center;
+  font-family:ui-monospace,monospace; font-size:13px; font-weight:700;
+}
+h2{
+  font-family:Georgia,"Iowan Old Style","Palatino Linotype",Palatino,serif;
+  font-size:21px; font-weight:600; margin:2px 0 4px; letter-spacing:-.005em;
+}
+.step-sub{font-size:13.5px; color:var(--text-faint); margin:0 0 16px}
+
+ol.tasks, ul.tasks{margin:0; padding-left:22px}
+ol.tasks li, ul.tasks li{margin-bottom:10px; font-size:14.5px}
+ol.tasks li:last-child, ul.tasks li:last-child{margin-bottom:0}
+
+.kv{
+  display:grid; grid-template-columns:auto 1fr; gap:6px 16px;
+  background:var(--code-bg); border:1px solid var(--border); border-radius:8px;
+  padding:12px 14px; margin:14px 0; font-size:13px;
+}
+.kv .k{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; color:var(--text-muted); white-space:nowrap}
+.kv .v{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; color:var(--code-text); word-break:break-word}
+
+code.inline{
+  font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:.92em;
+  background:var(--code-bg); color:var(--code-text); padding:1.5px 6px; border-radius:4px;
+  word-break:break-word;
+}
+
+.callout{
+  display:flex; gap:10px; align-items:flex-start;
+  background:var(--warn-bg); border:1px solid var(--warn-border); border-radius:8px;
+  padding:12px 14px; margin:16px 0 4px; font-size:13.5px; color:var(--warn-text);
+}
+.callout .mark{font-weight:700; flex-shrink:0}
+
+.menu-path{
+  font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:13px;
+  color:var(--accent-ink); background:var(--accent-soft);
+  padding:2px 8px; border-radius:5px; display:inline-block;
+}
+
+details.more{margin-top:14px}
+details.more summary{
+  cursor:pointer; font-size:13px; color:var(--text-muted); font-weight:600;
+  list-style:none; display:flex; align-items:center; gap:6px;
+}
+details.more summary::before{content:"\25B8"; font-size:11px; color:var(--accent)}
+details.more[open] summary::before{content:"\25BE"}
+details.more summary::-webkit-details-marker{display:none}
+details.more .more-body{padding:10px 2px 0 16px; font-size:13.5px; color:var(--text-muted)}
+details.more .more-body p{margin:0 0 10px}
+details.more .more-body p:last-child{margin-bottom:0}
+
+.recap{
+  background:var(--surface); border:1px solid var(--border); border-radius:10px;
+  padding:22px 24px; margin-top:8px;
+}
+.recap h2{margin-top:0}
+.recap ul{margin:0; padding-left:20px}
+.recap li{margin-bottom:9px; font-size:14.5px}
+.recap li:last-child{margin-bottom:0}
+.recap li b{color:var(--text)}
+
+hr.rule{border:none; border-top:1px solid var(--border); margin:48px 0}
+
+@media (max-width:480px){
+  .wrap{padding:40px 18px 72px}
+  h1{font-size:27px}
+  section.step{padding-left:42px; margin-left:10px}
+  .step-num{width:27px;height:27px;left:-13.5px;font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <p class="eyebrow">SEO Toolkit Pro &middot; Building Setup</p>
+  <h1>Setting Up Your Building's GSC Workbench</h1>
+  <p class="lede">This gives your building its own private workspace for managing Google Search Console accounts &mdash; separate from every other building's. <b>Logging in and who's an admin is still handled centrally</b> by the super admin; this guide is only about GSC.</p>
+
+  <div class="notice">
+    <span>&#9432;</span>
+    <span><b>PTP is already done</b> &mdash; skip this whole guide if you're PTP. This is for a <b>new building</b> (313, 188, etc.), or an admin adding/checking GSC accounts for one that already exists.</span>
+  </div>
+
+  <div class="files">
+    <span class="f-icon">1</span><span>You'll need the file <code>building_gsc_apps_script.js</code> (given to you)</span>
+    <span class="f-icon">2</span><span>You'll need the file <code>GSC_Building_Template.xlsx</code> (given to you)</span>
+  </div>
+
+  <!-- STEP 1 -->
+  <section class="step">
+    <div class="step-num">1</div>
+    <h2>Create your building's spreadsheet</h2>
+    <p class="step-sub">This is where all of this building's GSC accounts and settings will live.</p>
+    <ol class="tasks">
+      <li>In Google Drive, click <b>New &rarr; Google Sheets &rarr; Blank</b>. Name it something like <b>"313 &ndash; GSC Tracker"</b>.</li>
+      <li>Click <b>File &rarr; Import &rarr; Upload</b>, choose <code class="inline">GSC_Building_Template.xlsx</code>, then pick <b>Replace spreadsheet</b>.</li>
+      <li>Copy the long ID from the sheet's URL &mdash; the part between <code class="inline">/d/</code> and <code class="inline">/edit</code>. You'll need it in a minute.</li>
+    </ol>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="step">
+    <div class="step-num">2</div>
+    <h2>Add the script</h2>
+    <p class="step-sub">This is the code that actually runs your building's GSC connections.</p>
+    <ol class="tasks">
+      <li>In your new sheet, open <span class="menu-path">Extensions &rarr; Apps Script</span>.</li>
+      <li>Delete whatever code is already there, and paste in the entire contents of <code class="inline">building_gsc_apps_script.js</code>. Save.</li>
+      <li>On the left, click the <b>+</b> next to <b>Libraries</b>, add this ID, then click <b>Add</b>:
+        <div class="kv"><span class="k">Library ID</span><span class="v">1B7FSrk5Zi6L1rSxxTDgDEUsPzlukDsi4KGuTMorsTQHhGBzBkMun4iDF</span></div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- STEP 3 -->
+  <section class="step">
+    <div class="step-num">3</div>
+    <h2>Enter three settings</h2>
+    <p class="step-sub">Open <span class="menu-path">Project Settings &rarr; Script Properties &rarr; Add property</span> and add these three:</p>
+    <div class="kv">
+      <span class="k">SHEET_ID</span><span class="v">the ID you copied in Step 1</span>
+      <span class="k">CLIENT_ID</span><span class="v">from Step 4 below</span>
+      <span class="k">CLIENT_SECRET</span><span class="v">from Step 4 below</span>
+    </div>
+    <div class="callout"><span class="mark">Skip:</span><span>Don't add anything called <code class="inline">ADMIN_KEY</code> &mdash; it isn't used anymore. Admin actions now check the admin's own SEO Toolkit Pro login instead.</span></div>
+  </section>
+
+  <!-- STEP 4 -->
+  <section class="step">
+    <div class="step-num">4</div>
+    <h2>Get your OAuth credentials</h2>
+    <p class="step-sub">This is what lets the script securely talk to Google on your behalf.</p>
+    <ol class="tasks">
+      <li>Easiest option: reuse PTP's existing Client ID / Client Secret. Enter them into the two fields from Step 3.</li>
+      <li>Reload the sheet, then run <span class="menu-path">GSC Tools &rarr; Show owner / project info</span> &mdash; it prints a <b>redirect URI</b> ending in <code class="inline">/usercallback</code>.</li>
+      <li>In Google Cloud Console, open that OAuth client under <span class="menu-path">APIs &amp; Services &rarr; Credentials</span>, add that URI under <b>Authorized redirect URIs</b>, and save.</li>
+    </ol>
+    <div class="callout"><span class="mark">Heads up:</span><span>If this building will connect close to 100 Google accounts, give it its own Cloud project + OAuth client instead of sharing PTP's &mdash; Google limits how many accounts one unverified client can serve.</span></div>
+  </section>
+
+  <!-- STEP 5 -->
+  <section class="step">
+    <div class="step-num">5</div>
+    <h2>Publish it as a web app</h2>
+    <ol class="tasks">
+      <li>In the Apps Script editor: <span class="menu-path">Deploy &rarr; New deployment &rarr; Web app</span>.</li>
+      <li>Set <b>Execute as: Me</b> and <b>Who has access: Anyone</b>, then <b>Deploy</b>.</li>
+      <li>Approve the Google permission prompt.</li>
+      <li>Copy the web address it gives you (it ends in <code class="inline">/exec</code>).</li>
+    </ol>
+  </section>
+
+  <!-- STEP 6 -->
+  <section class="step">
+    <div class="step-num">6</div>
+    <h2>Send the link to the super admin</h2>
+    <p class="step-sub">They'll paste it into the central sheet so your building's users get routed to your GSC accounts, and no one else's.</p>
+  </section>
+
+  <!-- STEP 7 -->
+  <section class="step">
+    <div class="step-num">7</div>
+    <h2>Connect your Google accounts</h2>
+    <p class="step-sub">Reload the sheet first so the <b>GSC Tools</b> menu shows up. Repeat these five steps for each account:</p>
+    <ol class="tasks">
+      <li>Add a row to the <code class="inline">GSC_Config</code> tab: <code class="inline">_setup | new@email.com | accountkeyname</code></li>
+      <li><span class="menu-path">GSC Tools &rarr; Generate auth URLs</span></li>
+      <li>Open the <code class="inline">Auth_Status</code> tab, click that account's link, and click <b>Allow</b>.</li>
+      <li><span class="menu-path">GSC Tools &rarr; Check authorisation status</span> &mdash; confirm it says <b>Authorised</b>.</li>
+      <li><span class="menu-path">GSC Tools &rarr; Sync domains from GSC</span> &mdash; pulls in every site that account can access.</li>
+    </ol>
+    <details class="more">
+      <summary>An account's connection broke &mdash; how do I fix just that one?</summary>
+      <div class="more-body">
+        <p><span class="menu-path">GSC Tools &rarr; Check authorisation status &rarr; Reset ONE account</span>, enter its key, then <span class="menu-path">Generate auth URLs</span> and repeat steps 3&ndash;4 above for that account only.</p>
+        <p>The full menu reference lives in the <code class="inline">GSC_Help</code> tab of your sheet.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- STEP 7b -->
+  <section class="step">
+    <div class="step-num">7b</div>
+    <h2>Optional: use your own API key for one service</h2>
+    <p class="step-sub">Most buildings can skip this &mdash; you automatically inherit the shared keys.</p>
+    <ol class="tasks">
+      <li>Open the <code class="inline">Keys</code> tab (<code class="inline">Key Name | Value | Description</code>).</li>
+      <li>Fill in <b>Value</b> only for a key you specifically want to override for this building &mdash; e.g. your own screenshot-hosting key.</li>
+      <li>Done &mdash; everyone in your building picks it up automatically within about 15 minutes. Nothing to restart.</li>
+    </ol>
+  </section>
+
+  <!-- STEP 8 -->
+  <section class="step">
+    <div class="step-num">8</div>
+    <h2>Set your alert email</h2>
+    <ol class="tasks">
+      <li>Open the <code class="inline">GSC_Settings</code> tab.</li>
+      <li>Set <b>Alert Email TO</b> to your building's admin email (comma-separate for more than one).</li>
+    </ol>
+    <div class="callout"><span class="mark">Important:</span><span>Skip this and every alert &mdash; Manual Actions, Security Issues, removals, and the checks in Step 9 &mdash; silently goes to PTP's inbox instead of yours.</span></div>
+  </section>
+
+  <!-- STEP 9 -->
+  <section class="step">
+    <div class="step-num">9</div>
+    <h2>The daily version check (sets itself up)</h2>
+    <p class="step-sub">This checks that the GSC access you have for a domain actually matches the URL version the site really runs on &mdash; e.g. you're set up for <code class="inline">https://www.</code> but the site now runs on plain <code class="inline">https://</code>. Nothing for you to configure:</p>
+    <ul class="tasks">
+      <li>A quick check already runs automatically every ~6 hours, for any domain whose access just changed.</li>
+      <li>A full sweep of every domain runs automatically once a day at 3am, and emails your <b>Alert Email TO</b> address if anything needs attention.</li>
+    </ul>
+    <details class="more">
+      <summary>I want to run a full check right now, or something's stuck</summary>
+      <div class="more-body">
+        <p>Run it on demand any time: <span class="menu-path">GSC Tools &rarr; Run full GSC version check now</span>. You'll get an email once it finishes.</p>
+        <p>If it stops early with a permission error mentioning <code class="inline">script.scriptapp</code>: open the Apps Script editor, pick any function from the dropdown (e.g. <code class="inline">dailyVersionCheck</code>) and click Run once to re-approve that permission, then run the full check again.</p>
+        <p>If you just edited <code class="inline">GSC_Config</code> by hand, run <code class="inline">clearDomainAccountMapCache</code> once from the Apps Script editor so the change is picked up immediately instead of within 5 minutes.</p>
+      </div>
+    </details>
+  </section>
+
+  <hr class="rule">
+
+  <div class="recap">
+    <h2>What the super admin still needs to do</h2>
+    <ul>
+      <li>In the central sheet's <b>Buildings</b> tab, paste this building's <code class="inline">/exec</code> link into <b>gsc_script_url</b>.</li>
+      <li>Set the building's manager as its admin (role = admin, in that building's own users sheet).</li>
+      <li>Nothing else &mdash; shared default keys already live in the central <b>Keys</b> tab, and every building inherits them unless it set its own override in Step 7b.</li>
+    </ul>
+  </div>
+
+</div>
+</body>
+</html>

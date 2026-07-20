@@ -220,15 +220,13 @@ hr.rule{border:none; border-top:1px solid var(--border); margin:48px 0}
   <!-- STEP 4 -->
   <section class="step">
     <div class="step-num">4</div>
-    <h2>Enter four settings</h2>
-    <p class="step-sub">Open <span class="menu-path">Project Settings &rarr; Script Properties &rarr; Add property</span> and add these:</p>
+    <h2>Enter three settings</h2>
+    <p class="step-sub">Open <span class="menu-path">Project Settings &rarr; Script Properties &rarr; Add property</span> and add these three:</p>
     <div class="kv">
       <span class="k">SHEET_ID</span><span class="v">the ID you copied in Step 1</span>
       <span class="k">CLIENT_ID</span><span class="v">from Step 3 above</span>
       <span class="k">CLIENT_SECRET</span><span class="v">from Step 3 above</span>
-      <span class="k">FALLBACK_ALERT_EMAIL</span><span class="v">your own admin email (see Step 8)</span>
     </div>
-    <p class="step-sub" style="margin-top:10px">This last one is a safety net: if an alert email is ever left unset in Step 8, it goes here instead of nowhere, or worse, someone else's inbox. Use the same email(s) you'll give the super admin as this building's admin.</p>
     <div class="callout"><span class="mark">Skip:</span><span>Don't add anything called <code class="inline">ADMIN_KEY</code>. It isn't used anymore. Admin actions now check the admin's own SEO Toolkit Pro login instead.</span></div>
   </section>
 
@@ -293,7 +291,7 @@ hr.rule{border:none; border-top:1px solid var(--border); margin:48px 0}
       <li>Open the <code class="inline">GSC_Settings</code> tab.</li>
       <li>Set <b>Alert Email TO</b> to your building's admin email (comma-separate for more than one).</li>
     </ol>
-    <div class="callout"><span class="mark">Important:</span><span>If you skip this, every alert (Manual Actions, Security Issues, removals, and the checks in Step 9) goes to whatever you entered as <code class="inline">FALLBACK_ALERT_EMAIL</code> in Step 4 instead. If you skipped that too, alerts just don't send. Fill in at least one of the two.</span></div>
+    <div class="callout"><span class="mark">Good to know:</span><span>If you leave this blank, every alert (Manual Actions, Security Issues, removals, and the checks in Step 9) automatically goes to this building's admin email instead, whatever the super admin already has on file for your building. You only need to fill this in if you want alerts to go somewhere different from that.</span></div>
   </section>
 
   <!-- STEP 9 -->

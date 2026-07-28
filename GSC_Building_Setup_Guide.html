@@ -210,24 +210,25 @@ hr.rule{border:none; border-top:1px solid var(--border); margin:48px 0}
     <h2>Get your OAuth credentials</h2>
     <p class="step-sub">This is what lets the script securely talk to Google on your behalf. You'll enter these in the next step.</p>
     <ol class="tasks">
-      <li>Easiest option: reuse PTP's existing Client ID and Client Secret. Ask the super admin for these two values.</li>
+      <li>Go to <a href="https://console.cloud.google.com" target="_blank" rel="noopener" style="color:var(--accent-ink);font-weight:600">console.cloud.google.com</a> and create a new project (name it something like <b>"313 GSC Tools"</b>).</li>
+      <li>Enable the API: <span class="menu-path">APIs &amp; Services &rarr; Library</span>, search for <b>"Search Console API"</b>, and click <b>Enable</b>.</li>
+      <li>Set up consent: <span class="menu-path">APIs &amp; Services &rarr; OAuth consent screen</span>. Choose <b>External</b>, fill in an app name and your email, then add this scope: <code class="inline">https://www.googleapis.com/auth/webmasters.readonly</code>.</li>
+      <li>Create the credential: <span class="menu-path">APIs &amp; Services &rarr; Credentials &rarr; Create Credentials &rarr; OAuth client ID</span>. Application type: <b>Web application</b>. Name it and click <b>Create</b>.</li>
+      <li>Google shows your new <b>Client ID</b> and <b>Client Secret</b> right away &mdash; copy both. These are the two values for Step 4 below.</li>
       <li>Reload the sheet, then run <span class="menu-path">GSC Tools &rarr; Show owner / project info</span>. It prints a <b>redirect URI</b> ending in <code class="inline">/usercallback</code>.</li>
-      <li>In Google Cloud Console, open that OAuth client under <span class="menu-path">APIs &amp; Services &rarr; Credentials</span>, add that URI under <b>Authorized redirect URIs</b>, and save.</li>
+      <li>Back in Google Cloud Console, open that same OAuth client under <span class="menu-path">APIs &amp; Services &rarr; Credentials</span>, add that URI under <b>Authorized redirect URIs</b>, and save.</li>
     </ol>
-    <div class="callout"><span class="mark">Heads up:</span><span>If this building will connect close to 100 Google accounts, give it its own Cloud project and OAuth client instead of sharing PTP's. Google limits how many accounts one unverified client can serve.</span></div>
+    <div class="callout"><span class="mark">Heads up:</span><span>While your consent screen is in <b>Testing</b> status (the default, until you verify the app with Google), only Google accounts you've explicitly added as <b>Test users</b> on that same OAuth consent screen page can authorize it &mdash; add every GSC account this building will connect there first, or Step 7's "Allow" screen will fail for anyone not listed.</span></div>
     <details class="more">
-      <summary>Or create your own Client ID and Secret instead</summary>
+      <summary>Or reuse PTP's existing Client ID and Secret instead</summary>
       <div class="more-body">
-        <p>Do this if you'd rather not depend on the super admin, or you already know this building needs its own Cloud project (see the heads-up above).</p>
+        <p>Faster if you don't need your own Cloud project (see the heads-up above for when you might).</p>
         <ol class="tasks">
-          <li>Go to <a href="https://console.cloud.google.com" target="_blank" rel="noopener" style="color:var(--accent-ink);font-weight:600">console.cloud.google.com</a> and create a new project (name it something like <b>"313 GSC Tools"</b>).</li>
-          <li>Enable the API: <span class="menu-path">APIs &amp; Services &rarr; Library</span>, search for <b>"Search Console API"</b>, and click <b>Enable</b>.</li>
-          <li>Set up consent: <span class="menu-path">APIs &amp; Services &rarr; OAuth consent screen</span>. Choose <b>External</b>, fill in an app name and your email, then add this scope: <code class="inline">https://www.googleapis.com/auth/webmasters.readonly</code>.</li>
-          <li>Create the credential: <span class="menu-path">APIs &amp; Services &rarr; Credentials &rarr; Create Credentials &rarr; OAuth client ID</span>. Application type: <b>Web application</b>. Name it and click <b>Create</b>.</li>
-          <li>Google shows your new <b>Client ID</b> and <b>Client Secret</b> right away &mdash; copy both. These are the two values for Step 4 below, in place of PTP's.</li>
+          <li>Ask the super admin for PTP's existing Client ID and Client Secret.</li>
+          <li>Reload the sheet, then run <span class="menu-path">GSC Tools &rarr; Show owner / project info</span>. It prints a <b>redirect URI</b> ending in <code class="inline">/usercallback</code>.</li>
+          <li>In Google Cloud Console, open that OAuth client under <span class="menu-path">APIs &amp; Services &rarr; Credentials</span>, add that URI under <b>Authorized redirect URIs</b>, and save.</li>
         </ol>
-        <p>Then continue with the other two tasks above (show owner/project info, add the redirect URI) &mdash; on <b>this</b> client instead of PTP's.</p>
-        <p>While your consent screen is in <b>Testing</b> status (the default, until you verify the app with Google), only Google accounts you've explicitly added as <b>Test users</b> on that same OAuth consent screen page can authorize it &mdash; add every GSC account this building will connect there first, or Step 7's "Allow" screen will fail for anyone not listed.</p>
+        <p>If this building will connect close to 100 Google accounts, create your own Client ID and Secret instead (see above) &mdash; Google limits how many accounts one unverified client can serve.</p>
       </div>
     </details>
   </section>

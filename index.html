@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SEO Toolkit Pro — Admin</title>
+<title>SEO Toolkit Pro: Admin</title>
 <style>
 /* ===================== Design tokens (matches index.html) ===================== */
 :root{
@@ -480,7 +480,7 @@ tbody tr:hover td{background:var(--surface-2)}
     </button>
   </div>
   <div class="sheet-body">
-    <p style="color:var(--text-3);font-size:12px;line-height:1.5;margin:0 0 12px">A login from one of these IPs skips the device-ID approval for your building (the account must still be Approved). Comma-separated. Two kinds:<br>&bull; <b>Public office IP</b> = secure — get it by opening <b>api.ipify.org</b> on an office PC (e.g. 203.0.113.5).<br>&bull; <b>Local subnet</b> = convenience only / weaker, other networks can share it (e.g. 192.168.11, 10.10.11).<br>Leave blank to require normal device approval.</p>
+    <p style="color:var(--text-3);font-size:12px;line-height:1.5;margin:0 0 12px">A login from one of these IPs skips the device-ID approval for your building (the account must still be Approved). Comma-separated. Two kinds:<br>&bull; <b>Public office IP</b> = secure. Get it by opening <b>api.ipify.org</b> on an office PC (e.g. 203.0.113.5).<br>&bull; <b>Local subnet</b> = convenience only / weaker, other networks can share it (e.g. 192.168.11, 10.10.11).<br>Leave blank to require normal device approval.</p>
     <div class="field"><label>Allowed office IPs</label><input id="oip-ips" placeholder="203.0.113.5, 192.168.11" autocomplete="off" /></div>
   </div>
   <div class="sheet-actions">
@@ -621,7 +621,7 @@ function applyRoleUI(){
   // Building admins get a self-service Office IPs editor for their own building.
   // (Super admin sets IPs via the full Buildings manager instead.)
   $('btn-office-ips').classList.toggle('hidden', !(MY_ROLE==='admin'));
-  $('conn-info').textContent = sup ? 'Super Admin' : ('Admin — ' + (MY_BUILDING||'building'));
+  $('conn-info').textContent = sup ? 'Super Admin' : ('Admin: ' + (MY_BUILDING||'building'));
   $('dash-sub').textContent = sup
     ? 'Manage all buildings, admins and users'
     : 'Manage your building’s teammates ('+(MY_BUILDING||'')+')';
@@ -682,7 +682,7 @@ async function openOfficeIps(){
   try{
     const r=await api('building_ips_get');
     if(r.error){toast(r.error);return}
-    $('oip-building').textContent=r.building?('— '+r.building):'';
+    $('oip-building').textContent=r.building?(': '+r.building):'';
     $('oip-ips').value=r.allowed_ips||'';
   }catch(e){toast('Could not load IPs: '+e.message)}
 }
@@ -835,7 +835,7 @@ function editUser(email){
   isCreating=false;
   const u=users.find(x=>(x.email||'').toLowerCase()===email.toLowerCase());
   if(!u)return;
-  $('sheet-title').textContent='Edit — '+u.email;
+  $('sheet-title').textContent='Edit: '+u.email;
   $('ed-email-key').value=u.email;
   $('ed-email').value=u.email||'';
   $('ed-name').value=u.name||'';
